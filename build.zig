@@ -8,15 +8,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
-    const example_mod = b.createModule(.{
-        .root_source_file = b.path("sdl3_example.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    example_mod.addImport("pixelz_lib", pixelz_mod);
-
     const pixelz_lib = b.addLibrary(.{
         .linkage = .static,
         .name = "pixelz",
@@ -24,6 +15,27 @@ pub fn build(b: *std.Build) void {
     });
     b.installArtifact(pixelz_lib);
 
+    if (b.option(bool, "sdl3_primitives", "Compile sdl3_primitives example")) |_| {
+        compile_example(b, target, optimize, pixelz_mod, "examples/sdl3_primitives.zig");
+    }
+    if (b.option(bool, "sdl3_radiance_cascades", "Compile sdl3_radiance_cascades example")) |_| {
+        compile_example(b, target, optimize, pixelz_mod, "examples/sdl3_radiance_cascades.zig");
+    }
+}
+
+fn compile_example(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    pixelz_mod: *std.Build.Module,
+    path: []const u8,
+) void {
+    const example_mod = b.createModule(.{
+        .root_source_file = b.path(path),
+        .target = target,
+        .optimize = optimize,
+    });
+    example_mod.addImport("pixelz_lib", pixelz_mod);
     const example_exe = b.addExecutable(.{
         .name = "pixelz",
         .root_module = example_mod,
